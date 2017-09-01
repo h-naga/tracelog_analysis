@@ -1,0 +1,7 @@
+tracelog_analysys.sln
+tracelog_analysys.suo
+tracelog_analysys/bin/*
+tracelog_analysys/obj/*
+tracelog_analysys/Properties/*
+tracelog_analysys/Program.cs
+tracelog_analysys/tracelog_analysys.csproj
