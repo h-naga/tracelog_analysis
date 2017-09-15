@@ -46,11 +46,17 @@ namespace tracelog_analysys
         //読込ボタン
         private void loadButton_Click(object sender, EventArgs e)
         {
+            //読み込み用ストリーム
             StreamReader sr = new StreamReader(
                 fileNameTextBox.Text, Encoding.GetEncoding("utf-8"));
 
+            //書き込み用ストリーム
+            StreamWriter sw = new StreamWriter(
+                Environment.CurrentDirectory + "\\output.txt", false, Encoding.GetEncoding("utf-8"));
+
             //ループ用変数
-            int num_i = 0;
+            long num_i = 0;
+            long num_i2 = 0;
             int num_j = 0;
             int num_k = 0;
 
@@ -70,14 +76,29 @@ namespace tracelog_analysys
 
             string text;        //読込テキスト
 
+
+            //プログレスバーを初期化する
+            progressBar1.Minimum = 0;
+            progressBar1.Maximum = 100;
+            progressBar1.Value = 0;
+
+            System.IO.FileInfo fi = new System.IO.FileInfo(fileNameTextBox.Text);
+            //ファイルのサイズを取得
+            long filesize = fi.Length;
+
+            MessageBox.Show("処理開始");
+
             //ファイルの初めからEOFまで探索
             while (!sr.EndOfStream)
             //for (num_i = 0; num_i < 60000; num_i++)
             {
+                //プログレスバー更新
+                progressBar1.Value = (int)(sr.BaseStream.Position / filesize)*100;
+
                 text = sr.ReadLine() + "\n";
 
                 //検索し、該当したら行とデータ部を抜き出す
-                if (0 <= text.IndexOf("10.22.227.7"))
+                if (0 <= text.IndexOf("10.22.2.63"))
                 {
                     //データ部はバッファ配列を遡って確認する
                     for (num_j = 0; num_j < bufferSize; num_j++)
@@ -115,7 +136,8 @@ namespace tracelog_analysys
                             {
                                 for (num_k = endIndex; num_k <= startIndex; num_k++)
                                 {
-                                    textBox2.AppendText(stArray[num_k]);
+                                    sw.Write(stArray[num_k]);
+                                    //textBox2.AppendText(stArray[num_k]);
                                 }
                             }
                             else
@@ -123,12 +145,14 @@ namespace tracelog_analysys
                                 //バッファが一周している時は2段階で遡る
                                 for (num_k = endIndex; num_k <= bufferSize - 1; num_k++)
                                 {
-                                    textBox2.AppendText(stArray[num_k]);
+                                    sw.Write(stArray[num_k]);
+                                    //textBox2.AppendText(stArray[num_k]);
                                 }
 
                                 for (num_k = 0; num_k <= startIndex; num_k++)
                                 {
-                                    textBox2.AppendText(stArray[num_k]);
+                                    sw.Write(stArray[num_k]);
+                                    //textBox2.AppendText(stArray[num_k]);
                                 }
                             }
 
@@ -138,7 +162,8 @@ namespace tracelog_analysys
 
                     }
                     reverseIndex = 0;
-                    textBox2.AppendText(text + "\n");
+                    sw.Write(text + "\n");
+                    //textBox2.AppendText(text + "\n");
                 }
 
                 //バッファ配列に格納
@@ -161,6 +186,9 @@ namespace tracelog_analysys
             }
 
             sr.Close();
+            sw.Close();
+
+            MessageBox.Show("処理終了");
         }
     }
 }
