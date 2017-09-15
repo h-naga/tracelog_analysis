@@ -47,40 +47,51 @@ namespace tracelog_analysys
         private void loadButton_Click(object sender, EventArgs e)
         {
             StreamReader sr = new StreamReader(
-                fileNameTextBox.Text,Encoding.GetEncoding("utf-8"));
+                fileNameTextBox.Text, Encoding.GetEncoding("utf-8"));
 
-            int currentIndex = 0;
+            //ループ用変数
             int num_i = 0;
             int num_j = 0;
             int num_k = 0;
-            int startIndex = 0;
-            int endIndex = 0;
-            int reverseIndex = 0;
-            int dataFlag = 0;
-            int tmpSize = 100;
-            string[] stArray = new string[tmpSize];
-            string text;
 
-            //while(!sr.EndOfStream)
-            for (num_i = 0; num_i < 60000; num_i++)
+            //データ部探索用バッファ関連定義
+            int bufferSize = 100;                           //バッファサイズ
+            string[] stArray = new string[bufferSize];      //バッファ配列
+            int currentIndex = 0;                           //バッファ書き込み位置
+            int startIndex = 0;                             //データ部開始位置
+            int endIndex = 0;                               //データ部終了位置
+            int reverseIndex = 0;                           //バッファ遡り位置
+
+            //遡り中の状態フラグ
+            //　0:データ部開始位置探索フェイズ
+            //　1:データ部終了位置探索フェイズ
+            //　2:書き込みフェイズ
+            int dataFlag = 0;
+
+            string text;        //読込テキスト
+
+            //ファイルの初めからEOFまで探索
+            while (!sr.EndOfStream)
+            //for (num_i = 0; num_i < 60000; num_i++)
             {
                 text = sr.ReadLine() + "\n";
-                
+
                 //検索し、該当したら行とデータ部を抜き出す
                 if (0 <= text.IndexOf("10.22.227.7"))
                 {
                     //データ部はバッファ配列を遡って確認する
-                    for (num_j = 0; num_j < tmpSize; num_j++)
+                    for (num_j = 0; num_j < bufferSize; num_j++)
                     {
                         reverseIndex = currentIndex - num_j;
-                        if(reverseIndex < 0){
-                            reverseIndex += tmpSize;
+                        if (reverseIndex < 0)
+                        {
+                            reverseIndex += bufferSize;
                         }
 
                         //データ部は改行で区切られているものとする
                         if (dataFlag == 0)
                         {
-                            //一つ目の改行　データ部開始フェイズ
+                            //一つ目の改行　データ部開始位置探索フェイズ
                             if (stArray[reverseIndex] == "\n")
                             {
                                 dataFlag = 1;
@@ -89,7 +100,7 @@ namespace tracelog_analysys
                         }
                         else if (dataFlag == 1)
                         {
-                            //二つ目の改行　データ部終了フェイズ
+                            //二つ目の改行　データ部終了位置探索フェイズ
                             if (stArray[reverseIndex] == "\n")
                             {
                                 dataFlag = 2;
@@ -100,14 +111,17 @@ namespace tracelog_analysys
                         {
                             //書き込みフェイズ
                             //バッファを遡る
-                            if(endIndex < startIndex){
+                            if (endIndex < startIndex)
+                            {
                                 for (num_k = endIndex; num_k <= startIndex; num_k++)
                                 {
                                     textBox2.AppendText(stArray[num_k]);
                                 }
-                            }else{
+                            }
+                            else
+                            {
                                 //バッファが一周している時は2段階で遡る
-                                for (num_k = endIndex; num_k <= tmpSize-1; num_k++)
+                                for (num_k = endIndex; num_k <= bufferSize - 1; num_k++)
                                 {
                                     textBox2.AppendText(stArray[num_k]);
                                 }
@@ -134,8 +148,8 @@ namespace tracelog_analysys
                 //logWindowTextBox.AppendText(text);
                 //textBox1.AppendText(currentIndex.ToString() + "\n");
 
-                //ループ処理
-                if (currentIndex < tmpSize-1)
+                //バッファ書き込み位置のループ処理
+                if (currentIndex < bufferSize - 1)
                 {
                     currentIndex++;
                 }
@@ -143,22 +157,10 @@ namespace tracelog_analysys
                 {
                     currentIndex = 0;
                 }
-                
+
             }
-            
+
             sr.Close();
         }
     }
-    
-
-
-
-    /// <summary>
-    /// ファイル関連のクラス
-    /// </summary>
-
-    //public class FileManage
-    //{
-
-    //}
 }
